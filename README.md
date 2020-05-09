@@ -35,7 +35,8 @@ One goal of the dataset is to enable experiments on computer vision algorithms w
 
 The camera used for data collection was a Sony DCR-TRV70 DV HandyCam. 
 
-
+The following image shows frames extracted from different videos all of the same position & orientation.
+![Different times of day](/readme_images/different_times.png)
 
 ### Example video sequence
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=CAeCfXi1LsU" target="_blank"><img src="http://img.youtube.com/vi/CAeCfXi1LsU/0.jpg" 
