@@ -1,7 +1,7 @@
 # SloDB
 
 ## Introduction
-SloDB (short for Slovenian video Database) is a dataset useful for testing/evaluating computer vision algorithms. The dataset captures video sequences containing repeatable motion but varying environmental conditions and at varying times of day. This makes it useful for evaluating computer vision algorithms under changeable illumination and weather conditions. This dataset was captured during the course of my PhD. If you would like detailed information on this dataset please read chapter 4 of [my thesis](https://hdl.handle.net/10289/2581). What follows is an abridged explanation along with links to the dataset and code to process it.
+SloDB (short for Slovenian video Database) is a dataset useful for testing/evaluating computer vision algorithms. The dataset captures video sequences containing repeatable motion but varying environmental conditions and at various times of day. This makes it useful for evaluating computer vision algorithms under changeable illumination and weather conditions. This dataset was captured during the course of my PhD. If you would like detailed information on this dataset please read chapter 4 of [my thesis](https://hdl.handle.net/10289/2581). What follows is an abridged explanation along with links to the dataset and code to process it (code coming soon).
 
 ## Download
 The dataset is stored on Google drive in the following folder [here](https://drive.google.com/drive/folders/1jD-LzSZnSQcRjP8Sm4DT5-TbUbxw2byG?usp=sharing).
@@ -26,25 +26,26 @@ The dataset is ~116GB and covers a capture period between 23/01/2006 and 09/02/2
 
 Unlike other datasets, SloDB sought to capture the same scene but with repeatable motion. This motion was achieved by mounting the camera onto a Arrick Robotics XY positioning table with MD-2 Dual Stepper Motor system enabling programmatic control and a repeatable motion path for each video capture. Furthermore, repeatable orientation changes during the motion sequence were obtained using a Directed Perception PTU (Pan/tilt unit). The following image shows the camera mounted on the XY positioning table with PTU. 
 
-![SloDB capture system in situ](/readme_images/capture_in_situ.jpg)
+![SloDB capture system in situ](/readme_images/capture_in_situ.jpg | width=400)
 
 Note also that an Intersense IC2 IMU was mounted on top of the camera but upon analysis of the results, it was found to be unstable to be useful, even though I elevated the IC2 above the camera in an attempt to reduce the influence of magnetic distortions on the measurements.
 
 ### Position & orientation measurements
-One goal of the dataset is to enable experiments on computer vision algorithms where sequences of frames undergoing the same motion path can be tested but under varying illumination and environmental conditions. Position & orientation measurements were recorded per
+One goal of the dataset is to enable experiments on computer vision algorithms where sequences of frames undergoing the same motion path can be tested but under varying illumination and environmental conditions. The API for the XY positioning table was modified to return position measurements per step. For each frame the following information is stored: frame number, x and y position measured from the positioning table, yaw, pitch and roll from the IC2, time of frame capture, the last known pan and tilt position of the PTU, and the times at which those readings were taken. The stage of the movement is also stored; this breaks the motion sequence into stages based on the type of motion allowing easier retrieval of aligned frames. In addition, at the beginning of each pan-tilt motion the time and frame number at which the movement started is recorded. Using this information together with known parameters such as the speed, acceleration, and position of the PTU, which are precisely controlled, the orientation can be accurately predicted. This provides a secondary method of determining orientation in addition to the measurements recorded directly from the PTU. 
 
-The camera used for data collection was a Sony DCR-TRV70 DV HandyCam. 
+Two methods of establishing the orientation are used because the first method has a limited accuracy. The PTU was controlled using a serial interface. Attempting to retrieve the current position of the PTU per frame was not feasible, as doing so caused the system to move erratically. For this reason the PTU position is queried every 30ms, meaning for any given frame the recorded pan and tilt position could be off by at most 30ms worth of movement. Each time the PTU was queried the results were stored along with the time of the query. This way, for every frame recorded, the last known PTU position and the time at which that result was taken is known. Using the time at which the current frame was captured, the orientation results can be interpolated between frames during post processing. This provides accurate orientation positions for each frame. During this step, the secondary source of orientation information on when a pan tilt motion started is also incorporated to further increase the accuracy of the orientation data.
+
+The camera used for data collection was a Sony DCR-TRV70 DV HandyCam. Video was captured at a resolution of 720x576 (PAL) with a frame rate of 25 fps. Video was captured using an additional Sony VCL-0637 wide angle lens that provides a 0.6x magnification yielding a FOV of 89◦. Additionally, some videos were captured without this lens to provide another avenue for experimentation with the dataset. Without the wide angle lens the FOV was 53◦.
 
 The following image shows frames extracted from different videos all of the same position & orientation.
 ![Different times of day](/readme_images/different_times.png)
 
 ### Example video sequence
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=CAeCfXi1LsU" target="_blank"><img src="http://img.youtube.com/vi/CAeCfXi1LsU/0.jpg" 
-alt="Example video from SloDB" width="720" height="578" border="10" /></a>
+alt="Example video from SloDB" width="360" height="289" border="10" /></a>
+
 ### Limitations
-There are several limitations to this dataset. Firstly, during some motion sequences there is a reflection of the 
-
-
+There are several limitations to this dataset. Firstly, during some motion sequences there is a reflection of the camera's lens. Secondly, no ground truth information on the weather conditions were recorded. Lastly, due to the relatively short duration the capture system was set up it does not capture any significant seasonal variation. Additionally, during the capture period it did not capture rainfall or snowfall.
 
 ## Source code
 Coming soon...
