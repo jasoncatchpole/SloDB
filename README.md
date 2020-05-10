@@ -26,7 +26,7 @@ The dataset is ~116GB and covers a capture period between 23/01/2006 and 09/02/2
 
 Unlike other datasets, SloDB sought to capture the same scene but with repeatable motion. This motion was achieved by mounting the camera onto a Arrick Robotics XY positioning table with MD-2 Dual Stepper Motor system enabling programmatic control and a repeatable motion path for each video capture. Furthermore, repeatable orientation changes during the motion sequence were obtained using a Directed Perception PTU (Pan/tilt unit). The following image shows the camera mounted on the XY positioning table with PTU. 
 
-![SloDB capture system in situ](/readme_images/capture_in_situ.jpg | width=400)
+<img src="/readme_images/capture_in_situ.jpg" width="400" alt="SloDB capture system in situ">
 
 Note also that an Intersense IC2 IMU was mounted on top of the camera but upon analysis of the results, it was found to be unstable to be useful, even though I elevated the IC2 above the camera in an attempt to reduce the influence of magnetic distortions on the measurements.
 
