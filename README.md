@@ -19,6 +19,9 @@ The following are the individual links to the 7zip compressed files:
 - [2006-02-08 - download - 4GB](https://drive.google.com/open?id=1V0hIx__Mtp7DAS1SbmtZAmhnY964Pess)
 - [2006-02-09 - download - 3GB](https://drive.google.com/open?id=15Awr7MY-BmDi8WaFwqTbIUhKyQu41KjR)
 
+### File structure
+Each folder is named based on the capture date (in format YYYY-MM-DD). Inside each folder is a series of .avi files (uses a DV Video codec) using naming format DD-M-YYYY_HH-MM.avi. Together with these files are the ground truth files containing the information required to establish the position and orientation that each frame was captured at.
+
 ## Details
 The dataset is ~116GB and covers a capture period between 23/01/2006 and 09/02/2006 (videos were captured on 11 days during this period). The scene being captured was one from a University building in [Ljubljana, Slovenia](https://en.wikipedia.org/wiki/Ljubljana). The view from this window can be seen in the below panorama.
 
@@ -41,6 +44,7 @@ The following image shows frames extracted from different videos all of the same
 ![Different times of day](/readme_images/different_times.png)
 
 ### Example video sequence
+Here is one of the videos from the dataset to get a feel for the motion sequence captured.
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=CAeCfXi1LsU" target="_blank"><img src="http://img.youtube.com/vi/CAeCfXi1LsU/0.jpg" 
 alt="Example video from SloDB" width="360" height="289" border="10" /></a>
 
