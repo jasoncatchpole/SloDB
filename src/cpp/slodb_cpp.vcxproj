@@ -150,14 +150,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="FrameData.cpp" />
-    <ClCompile Include="PoseCalculator.cpp" />
-    <ClCompile Include="SliderFinder.cpp" />
+    <ClCompile Include="FrameMatcher.cpp" />
+    <ClCompile Include="PoseRefiner.cpp" />
     <ClCompile Include="slodb_cpp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FrameData.h" />
-    <ClInclude Include="PoseCalculator.h" />
-    <ClInclude Include="SliderFinder.h" />
+    <ClInclude Include="FrameMatcher.h" />
+    <ClInclude Include="PoseRefiner.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

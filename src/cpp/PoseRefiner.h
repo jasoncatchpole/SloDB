@@ -5,13 +5,13 @@
 
 namespace SloDB
 {
-    class PoseCalculator
+    class PoseRefiner
     {
     public:
-        PoseCalculator(void);
-        ~PoseCalculator(void);
+        PoseRefiner(void);
+        ~PoseRefiner(void);
         // Computes accurate poses based on a combination of the information in frames and pan_frames, the new, more accurate is then stored back into frames
-        bool ComputeAccuratePose(std::vector<FrameData> &frames, const std::vector<PanFrameData> &pan_frames);
+        bool RefineFramePoses(std::vector<FrameData> &frames, const std::vector<PanFrameData> &pan_frames);
 
         void OutputFramesToFile(std::vector<FrameData> &frames, const std::string &outputFilename);
     private:

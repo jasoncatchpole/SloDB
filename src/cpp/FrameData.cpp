@@ -76,21 +76,4 @@ namespace SloDB
         isTilt = stoi(tokens[3]) == 1;
         stage = stoi(tokens[4]);
     }
-
-    // Uses the information from the time stamps to accurately determine the frames pose
-    /*FrameData * FrameData::CalculatePose(FrameData PreviousFrame)
-    {
-        FrameData *newFrame = new FrameData();
-
-        if( Pan == PreviousFrame.Pan ) // the pan is exactly the same here as the previous frame so no need for calculating
-        {
-
-        }
-        else
-        {
-            //double time_diff = ElapsedTime -
-        }
-
-        return nullptr;
-    }*/
 }

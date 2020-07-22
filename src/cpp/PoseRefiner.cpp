@@ -1,4 +1,4 @@
-#include "PoseCalculator.h"
+#include "PoseRefiner.h"
 
 #include <iostream>
 #include <fstream>
@@ -6,16 +6,16 @@
 using namespace SloDB;
 using namespace std;
 
-PoseCalculator::PoseCalculator(void)
+PoseRefiner::PoseRefiner(void)
 {
 }
 
-PoseCalculator::~PoseCalculator(void)
+PoseRefiner::~PoseRefiner(void)
 {
 }
 
 // Computes accurate poses based on a combination of the information in frames and pan_frames, the new, more accurate is then stored back into frames
-bool PoseCalculator::ComputeAccuratePose(vector<FrameData> &frames, const vector<PanFrameData> &pan_frames)
+bool PoseRefiner::RefineFramePoses(vector<FrameData> &frames, const vector<PanFrameData> &pan_frames)
 {
 	// first we better make sure this isn't one of the few files which didn't have the pan & tilt times recorded
 	if( frames.size() > 0 )
@@ -138,7 +138,7 @@ bool PoseCalculator::ComputeAccuratePose(vector<FrameData> &frames, const vector
 	// Stage 7 (1 pan frame) - 
 	pan_iter++;
     // TODO: pan_iter+1 is not valid. At this point we have reached the end of the pan data
-	InterpolationGeneral(frames, (*pan_iter).frameNum, -400, (*pan_iter).elapsedTime, 70, (*(pan_iter+1)).frameNum, (*pan_iter).isTilt, 0); // this is a tilt
+	InterpolationGeneral(frames, (*pan_iter).frameNum, -400, (*pan_iter).elapsedTime, 70, frames.size(), (*pan_iter).isTilt, 0); // this is a tilt
 
 	// first do the pan frame since that is the beginning of the movement //
 	//int lastFrame = BeginpanFrame(frames, *pan_iter);
@@ -199,7 +199,7 @@ bool PoseCalculator::ComputeAccuratePose(vector<FrameData> &frames, const vector
 	return true;
 }
 
-bool PoseCalculator::ComputeFairlyAccuratePose(vector<FrameData> &frames, const vector<PanFrameData> &pan_frames)
+bool PoseRefiner::ComputeFairlyAccuratePose(vector<FrameData> &frames, const vector<PanFrameData> &pan_frames)
 {
 	// go through each entry of pan_frames and use this accurate information to update certain frames from 'frames'
 	vector<PanFrameData>::const_iterator pan_iter = pan_frames.begin();
@@ -314,7 +314,7 @@ bool PoseCalculator::ComputeFairlyAccuratePose(vector<FrameData> &frames, const 
 	return true;
 }
 
-int PoseCalculator::InterpolationGeneral(vector<FrameData> &frames, int beginFrame, double beginVal, double beginTime, double endPos, int lastFrame, bool isTilt, double otherVal)
+int PoseRefiner::InterpolationGeneral(vector<FrameData> &frames, int beginFrame, double beginVal, double beginTime, double endPos, int lastFrame, bool isTilt, double otherVal)
 {
 	if( beginFrame > (int)frames.size() )
 	{
@@ -405,7 +405,7 @@ int PoseCalculator::InterpolationGeneral(vector<FrameData> &frames, int beginFra
 }
 
 // given the start and end frames (and hence the values), calculate all the values for the frames in between
-void PoseCalculator::InterframeInterpolate(vector<FrameData> &frames, int startFrame, int endFrame, double startTime, double endTime, double beginVal, double endVal, bool isTilt, double otherVal)
+void PoseRefiner::InterframeInterpolate(vector<FrameData> &frames, int startFrame, int endFrame, double startTime, double endTime, double beginVal, double endVal, bool isTilt, double otherVal)
 {
 	// now calculate the time difference and the difference in the pose //
 	double timeDiff = endTime - startTime;
@@ -457,7 +457,7 @@ void PoseCalculator::InterframeInterpolate(vector<FrameData> &frames, int startF
 }
 
 // This function is the equivalent of InterpolationGeneral however it works for those files which do not have pan times recorded
-int PoseCalculator::FairlyGeneralInterpolation(vector<FrameData> &frames, int beginFrame, double beginVal, double beginTime, double endPos, int lastFrame, double endTime, bool isTilt, double speed, double otherVal)
+int PoseRefiner::FairlyGeneralInterpolation(vector<FrameData> &frames, int beginFrame, double beginVal, double beginTime, double endPos, int lastFrame, double endTime, bool isTilt, double speed, double otherVal)
 {
 	double SpeedVal = 0;
 	if( endPos == beginVal )
@@ -524,7 +524,7 @@ int PoseCalculator::FairlyGeneralInterpolation(vector<FrameData> &frames, int be
 }
 
 // Does the interpolation between frames for the diagonal movements where there is no time stamps for pan and tilt data
-int PoseCalculator::InterpolationDiagonal(vector<FrameData> &frames, int beginFrame, int endFrame, double beginValpan, double beginValTilt, double beginTime, double endTime, double endPospan, double endPosTilt)
+int PoseRefiner::InterpolationDiagonal(vector<FrameData> &frames, int beginFrame, int endFrame, double beginValpan, double beginValTilt, double beginTime, double endTime, double endPospan, double endPosTilt)
 {
 	double panSpeed = 100, TiltSpeed = 100;
 	// the pan and tilt speed were exactly the same for this sequence so as long as the distance is the same it will finish at the same time
@@ -618,7 +618,7 @@ int PoseCalculator::InterpolationDiagonal(vector<FrameData> &frames, int beginFr
 	return 0;
 }
 
-bool PoseCalculator::IsBetween(double curVal, double startVal, double endVal)
+bool PoseRefiner::IsBetween(double curVal, double startVal, double endVal)
 {
 	if( endVal < startVal ) // this means we have a negative velocity
 	{
@@ -650,7 +650,7 @@ bool PoseCalculator::IsBetween(double curVal, double startVal, double endVal)
 }
 
 // Computes the frames in between the first pan_data frame and the first normal frame measured
-int PoseCalculator::BeginPanFrame(vector<FrameData> &frames, PanFrameData pan_frame)
+int PoseRefiner::BeginPanFrame(vector<FrameData> &frames, PanFrameData pan_frame)
 {
 	int beginFrame = pan_frame.frameNum;
 	int endFrame;
@@ -697,7 +697,7 @@ int PoseCalculator::BeginPanFrame(vector<FrameData> &frames, PanFrameData pan_fr
 }
 
 // Computes the frames between 2 normal frames
-bool PoseCalculator::BetweenNormalFrames(vector<FrameData> &frames, int beginFrame)
+bool PoseRefiner::BetweenNormalFrames(vector<FrameData> &frames, int beginFrame)
 {
 	int endFrame;
 	double beginTime = frames[beginFrame].panTime;
@@ -736,7 +736,7 @@ bool PoseCalculator::BetweenNormalFrames(vector<FrameData> &frames, int beginFra
 	return false;
 }
 
-int PoseCalculator::GeneralInterpolation(vector<FrameData> &frames, int beginFrame, double beginTime, double *StoppingPos, bool isTilt)
+int PoseRefiner::GeneralInterpolation(vector<FrameData> &frames, int beginFrame, double beginTime, double *StoppingPos, bool isTilt)
 {
 	//int beginFrame = pan_frame.frameNum;
 	int endFrame;
@@ -802,7 +802,7 @@ int PoseCalculator::GeneralInterpolation(vector<FrameData> &frames, int beginFra
 	return endFrame;
 }
 
-int PoseCalculator::Interpolation(vector<FrameData> &frames, int beginFrame, double beginVal, double beginTime, int endPos, double speed)
+int PoseRefiner::Interpolation(vector<FrameData> &frames, int beginFrame, double beginVal, double beginTime, int endPos, double speed)
 {
 	//int beginVal = 550;
 	int lastFrame = 0;
@@ -845,7 +845,7 @@ int PoseCalculator::Interpolation(vector<FrameData> &frames, int beginFrame, dou
 	return lastFrame;
 }
 
-double PoseCalculator::CalculateAverageVelocity(vector<FrameData> &frames, int beginFrame, double beginTime, double beginPos, double endPos)
+double PoseRefiner::CalculateAverageVelocity(vector<FrameData> &frames, int beginFrame, double beginTime, double beginPos, double endPos)
 {
 	// first we need to determine the final frame, and final time
 	int lastFrame = 0;
@@ -884,7 +884,7 @@ double PoseCalculator::CalculateAverageVelocity(vector<FrameData> &frames, int b
 	return avgVelocity;
 }
 
-void PoseCalculator::OutputFramesToFile(vector<FrameData> &frames, const string &outputFilename)
+void PoseRefiner::OutputFramesToFile(vector<FrameData> &frames, const string &outputFilename)
 {
 	// try opening the file
 	//CString full_name = source->GetFilename();

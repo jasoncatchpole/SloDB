@@ -4,6 +4,7 @@
 
 namespace SloDB
 {
+    // stores position and orientation information for every frame in the video
     class FrameData
     {
     public:
@@ -28,13 +29,10 @@ namespace SloDB
         double pan = 0.0f, tilt = 0.0f;
         // the time at which the pan and tilt measurements were taken
         double panTime = 0.0f, tiltTime = 0.0f;
-
-
-
-        // Uses the information from the time stamps to accurately determine the frames pose
-        //FrameData * CalculatePose(FrameData PreviousFrame);
     };
 
+    // stores some discrete values containing the frame numbers where each of the 8 stages kicked
+    // off. Used in the PoseRefiner for interpolating pose values
     class PanFrameData
     {
     public:
