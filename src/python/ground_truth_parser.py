@@ -2,7 +2,7 @@
 entire video"""
 
 from pathlib import Path
-from frame_data import FrameData
+from frame_data import FrameData, PanFrameData
 
 class GroundTruthParser:
 
@@ -47,5 +47,5 @@ class GroundTruthParser:
         pan_frame_data = []
         for current_line in file_lines:
             # form a new frame data struct using the values from this line
-            pan_frame_data.append(PanFrameData.from_ground_truth_line(current_line))
+            pan_frame_data.append(PanFrameData.from_pandata_ground_truth_line(current_line))
         return pan_frame_data

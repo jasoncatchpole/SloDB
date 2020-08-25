@@ -1,5 +1,6 @@
 """Stores frame data as parsed from the csv ground truth files"""
 
+import math
 
 class FrameData:
     """This class stores the ground truth data as found in the '<DATE TIME>.csv' type files
@@ -31,6 +32,25 @@ class FrameData:
         # Uses the information from the time stamps to accurately determine the frames pose
         #FrameData * CalculatePose(FrameData PreviousFrame)
 
+    def __str__(self):
+        return f"Frame {self.frame_num}. x={self.x_pos}, y={self.y_pos}, pan={self.pan}, tilt={self.tilt}"
+
+    def __eq__(self, other): 
+        if not isinstance(other, FrameData):
+            # don't attempt to compare against unrelated types
+            return NotImplemented
+
+        return\
+            self.frame_num == other.frame_num and\
+            self.stage == other.stage and\
+            self.elapsed_time == other.elapsed_time and\
+            self.x_pos == other.x_pos and\
+            self.y_pos == other.y_pos and\
+            math.isclose(self.pan, other.pan, abs_tol=0.02) and\
+            math.isclose(self.tilt, other.tilt, abs_tol=0.02) and\
+            self.pan_time == other.pan_time and\
+            self.tilt_time == other.tilt_time
+
     @classmethod
     def from_ground_truth_line(cls, line):
         """Takes in a single line of ground truth, parses it and returns a FrameData
@@ -38,7 +58,7 @@ class FrameData:
         # tokenize each line based on comma character
         tokens = line.rstrip('\n').split(',')
         if len(tokens) < 8:
-            print(f'ERROR: Line from ground truth only has {len(line)} values, should have 8')
+            print(f'ERROR: Line from ground truth only has {len(tokens)} values, should have 8')
             return
         instance = cls()
         instance.frame_num = int(tokens[0])
@@ -56,9 +76,9 @@ class FrameData:
             instance.tilt = 0
             instance.tilt_time = -99
         else:
-            instance.pan = int(tokens[8])
+            instance.pan = float(tokens[8])
             instance.pan_time = float(tokens[9])
-            instance.tilt = int(tokens[10])
+            instance.tilt = float(tokens[10])
             instance.tilt_time = float(tokens[11])
 
         return instance

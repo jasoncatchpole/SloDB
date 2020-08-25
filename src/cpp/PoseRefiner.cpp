@@ -112,7 +112,6 @@ bool PoseRefiner::RefineFramePoses(vector<FrameData> &frames, const vector<PanFr
 		frames[(*pan_iter).frameNum].pan = 400;
 	InterpolationGeneral(frames, (*pan_iter).frameNum, 400, (*pan_iter).elapsedTime, 0, (*(pan_iter+1)).frameNum, (*pan_iter).isTilt, 150); // this is a pan
 
-
 	//##################################################################################//
 	// Stage 5 (2 pan frames) - Moving Up/Down Tilt
 	pan_iter++;
@@ -909,7 +908,7 @@ void PoseRefiner::OutputFramesToFile(vector<FrameData> &frames, const string &ou
 
 	for(; iter != frames.end(); iter++)
 	{
-		fileout << (*iter).frameNum << "," << (*iter).xPos << "," << (*iter).yPos << "," << (*iter).elapsedTime << "," << (*iter).pan << "," << (*iter).panTime << "," << (*iter).tilt << "," << (*iter).tiltTime << "\n";
+		fileout << (*iter).frameNum << "," << (*iter).xPos << "," << (*iter).yPos << ",0,0,0," << (*iter).elapsedTime << "," << (*iter).stage << "," << (*iter).pan << "," << (*iter).panTime << "," << (*iter).tilt << "," << (*iter).tiltTime << "\n";
 	}
 
 	fileout.close();

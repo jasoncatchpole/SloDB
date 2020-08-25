@@ -11,6 +11,7 @@ namespace SloDB
         FrameData() {};
         FrameData(const std::string &lineFromFile);
         ~FrameData() {}
+
     public:
         // The frame number
         int frameNum = 0;

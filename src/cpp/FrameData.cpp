@@ -51,7 +51,6 @@ namespace SloDB
         }
     }
 
-
     // PANDATA
     PanFrameData::PanFrameData(const string &lineFromFile)
     {
