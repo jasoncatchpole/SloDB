@@ -242,6 +242,7 @@ bool PoseRefiner::ComputeFairlyAccuratePose(vector<FrameData> &frames, const vec
 	pan_iter++;
 	FairlyGeneralInterpolation(frames, (*pan_iter).frameNum, 380, (*pan_iter).elapsedTime, 0, (*(pan_iter+1)).frameNum, (*(pan_iter+1)).elapsedTime, (*pan_iter).isTilt, 300, -200);
 
+    
 
 	//##################################################################################//
 	// Stage 3 (6 pan frames) - This stage involves doing a up down tilt with no movement
@@ -261,6 +262,8 @@ bool PoseRefiner::ComputeFairlyAccuratePose(vector<FrameData> &frames, const vec
 	FairlyGeneralInterpolation(frames, (*pan_iter).frameNum, 150, (*pan_iter).elapsedTime, -200, (*(pan_iter+1)).frameNum, (*(pan_iter+1)).elapsedTime, (*pan_iter).isTilt, 100, 0); // this is a tilt
 	pan_iter++;
 	FairlyGeneralInterpolation(frames, (*pan_iter).frameNum, 0, (*pan_iter).elapsedTime, 400, (*(pan_iter+1)).frameNum, (*(pan_iter+1)).elapsedTime, (*pan_iter).isTilt, 100, -200); // this is a pan
+
+    OutputFramesToFile(frames, "C:\\temp\\stage12.csv");
 
 	//##################################################################################//
 	// Stage 4 (6 pan frames) - This stage performs a diagonal motion which involves both 

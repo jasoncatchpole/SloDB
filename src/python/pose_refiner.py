@@ -341,7 +341,164 @@ class PoseRefiner:
                 return False
         return True
         
-    def fuse_ground_truth_fairly_accurate(self, frames, pan_data):
+    def fuse_ground_truth_fairly_accurate(self, frames, pan_frames):
         """Used for data captured on the first day before I added the extra pan & tilt info.
         This function does its best with the slightly reduced information"""
-        pass
+        ##################################################################################
+	    # Stage 0 - Initialization
+        pan_frame_index = 0
+        self.general_interpolation_fairly(frames, pan_frames[pan_frame_index].frame_num, -200,\
+            pan_frames[pan_frame_index].elapsed_time, -200, pan_frames[pan_frame_index+1].frame_num,\
+            pan_frames[pan_frame_index+1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
+            65, 550)
+        pan_frame_index = pan_frame_index + 1
+        self.general_interpolation_fairly(frames, pan_frames[pan_frame_index].frame_num, 550,\
+            pan_frames[pan_frame_index].elapsed_time, 550, pan_frames[pan_frame_index+1].frame_num,\
+            pan_frames[pan_frame_index+1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
+            65, -200)
+
+        ##################################################################################
+	    # Stage 1 (2 pan frames) - this stage involves moving to the left while panning right, 
+	    # then moving to the right while panning left
+        pan_frame_index = pan_frame_index + 1
+        self.general_interpolation_fairly(frames, pan_frames[pan_frame_index].frame_num, 550,\
+            pan_frames[pan_frame_index].elapsed_time, -670, pan_frames[pan_frame_index+1].frame_num,\
+            pan_frames[pan_frame_index+1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
+            65, -200)
+        pan_frame_index = pan_frame_index + 1
+        self.general_interpolation_fairly(frames, pan_frames[pan_frame_index].frame_num, -670,\
+            pan_frames[pan_frame_index].elapsed_time, 550, pan_frames[pan_frame_index+1].frame_num,\
+            pan_frames[pan_frame_index+1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
+            65, -200)
+
+        ##################################################################################
+	    # Stage 2 (8 pan frames) - This stage involves doing a jagged (Fast) left right pan
+	    #							with no movement position wise
+        pan_frame_index = pan_frame_index + 1
+        self.general_interpolation_fairly(frames, pan_frames[pan_frame_index].frame_num, 550,\
+            pan_frames[pan_frame_index].elapsed_time, 0, pan_frames[pan_frame_index+1].frame_num,\
+            pan_frames[pan_frame_index+1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
+            300, -200)
+        pan_frame_index = pan_frame_index + 1
+        self.general_interpolation_fairly(frames, pan_frames[pan_frame_index].frame_num, 0,\
+            pan_frames[pan_frame_index].elapsed_time, -580, pan_frames[pan_frame_index+1].frame_num,\
+            pan_frames[pan_frame_index+1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
+            300, -200)
+        pan_frame_index = pan_frame_index + 1
+        self.general_interpolation_fairly(frames, pan_frames[pan_frame_index].frame_num, -580,\
+            pan_frames[pan_frame_index].elapsed_time, 380, pan_frames[pan_frame_index+1].frame_num,\
+            pan_frames[pan_frame_index+1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
+            300, -200)
+        pan_frame_index = pan_frame_index + 1
+        self.general_interpolation_fairly(frames, pan_frames[pan_frame_index].frame_num, 380,\
+            pan_frames[pan_frame_index].elapsed_time, -580, pan_frames[pan_frame_index+1].frame_num,\
+            pan_frames[pan_frame_index+1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
+            300, -200)
+        pan_frame_index = pan_frame_index + 1
+        self.general_interpolation_fairly(frames, pan_frames[pan_frame_index].frame_num, -580,\
+            pan_frames[pan_frame_index].elapsed_time, 380, pan_frames[pan_frame_index+1].frame_num,\
+            pan_frames[pan_frame_index+1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
+            300, -200)
+        pan_frame_index = pan_frame_index + 1
+        self.general_interpolation_fairly(frames, pan_frames[pan_frame_index].frame_num, 380,\
+            pan_frames[pan_frame_index].elapsed_time, -580, pan_frames[pan_frame_index+1].frame_num,\
+            pan_frames[pan_frame_index+1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
+            300, -200)
+        pan_frame_index = pan_frame_index + 1
+        self.general_interpolation_fairly(frames, pan_frames[pan_frame_index].frame_num, -580,\
+            pan_frames[pan_frame_index].elapsed_time, 380, pan_frames[pan_frame_index+1].frame_num,\
+            pan_frames[pan_frame_index+1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
+            300, -200)
+        pan_frame_index = pan_frame_index + 1
+        self.general_interpolation_fairly(frames, pan_frames[pan_frame_index].frame_num, 380,\
+            pan_frames[pan_frame_index].elapsed_time, 0, pan_frames[pan_frame_index+1].frame_num,\
+            pan_frames[pan_frame_index+1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
+            300, -200)
+
+        ##################################################################################
+	    # Stage 3 (6 pan frames) - This stage involves doing a up down tilt with no movement
+	    #							position wise
+        pan_frame_index = pan_frame_index + 1
+        self.general_interpolation_fairly(frames, pan_frames[pan_frame_index].frame_num, -200,\
+            pan_frames[pan_frame_index].elapsed_time, -580, pan_frames[pan_frame_index+1].frame_num,\
+            pan_frames[pan_frame_index+1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
+            100, 0)
+        pan_frame_index = pan_frame_index + 1
+        self.general_interpolation_fairly(frames, pan_frames[pan_frame_index].frame_num, -580,\
+            pan_frames[pan_frame_index].elapsed_time, 150, pan_frames[pan_frame_index+1].frame_num,\
+            pan_frames[pan_frame_index+1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
+            100, 0)
+        pan_frame_index = pan_frame_index + 1
+        self.general_interpolation_fairly(frames, pan_frames[pan_frame_index].frame_num, 150,\
+            pan_frames[pan_frame_index].elapsed_time, -580, pan_frames[pan_frame_index+1].frame_num,\
+            pan_frames[pan_frame_index+1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
+            100, 0)
+        pan_frame_index = pan_frame_index + 1
+        self.general_interpolation_fairly(frames, pan_frames[pan_frame_index].frame_num, -580,\
+            pan_frames[pan_frame_index].elapsed_time, 150, pan_frames[pan_frame_index+1].frame_num,\
+            pan_frames[pan_frame_index+1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
+            100, 0)
+        
+        # # at this stage the up down tilt is really complete, now we are moving into position to do the Circular Motion,
+	    # # i.e the one with the diamond shape
+        pan_frame_index = pan_frame_index + 1
+        self.general_interpolation_fairly(frames, pan_frames[pan_frame_index].frame_num, 150,\
+            pan_frames[pan_frame_index].elapsed_time, -200, pan_frames[pan_frame_index+1].frame_num,\
+            pan_frames[pan_frame_index+1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
+            100, 0)
+        pan_frame_index = pan_frame_index + 1
+        self.general_interpolation_fairly(frames, pan_frames[pan_frame_index].frame_num, 0,\
+            pan_frames[pan_frame_index].elapsed_time, 400, pan_frames[pan_frame_index+1].frame_num,\
+            pan_frames[pan_frame_index+1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
+            100, -200)
+
+    def general_interpolation_fairly(self, frames, begin_frame, begin_value, begin_time,\
+        end_position, last_frame, end_time, is_tilt, speed, other_val) -> int:
+        """The alternate version of 'general_interpolation' used for the first couple of days of
+        capture where the pan & tilt values from the PTU (including the time at which the
+        measurements were taken"""
+        speed_val = 0
+        if end_position == begin_value:
+            speed_val = 0
+            speed = 0
+        else:
+            speed_val = abs(end_position - begin_value) / abs(end_time - begin_time)
+
+            # first make sure the velocities are going in the right direction
+            if end_position < begin_value:
+                if speed > 0:
+                    speed = -speed
+                if speed_val > 0:
+                    speed_val = -speed_val
+            else:
+                if speed < 0:
+                    speed = -speed
+                if speed_val < 0:
+                    speed_val = -speed_val
+
+            # if the calculated value for the velocity based on the start and end time is within 5% of the actual value use
+            # the calculated value instead as it is likely to be more accurate, if its outside that range its likely that this movement
+            # involves the PTU waiting for the XY table hence there is a long time between PAN frames and thus a calculated slow
+            # velocity. Conversely if there is a fast calculated speed then i should probably use that
+            if abs( speed_val - ( 0.95 * speed ) ) > abs( 0.05 * speed  ):
+                speed_val = speed
+
+        calculated_val = 0
+        #cur_frame = 0
+        frame_index = begin_frame
+        while frame_index < last_frame:
+            calculated_val = (speed_val * ( frames[frame_index].elapsed_time - begin_time )) + begin_value
+
+            # make sure the calculatedVal hasn't gone past the endPos
+            if not self.is_between(calculated_val, begin_value, end_position):
+                calculated_val = end_position
+
+            if is_tilt:
+                frames[frame_index].tilt = calculated_val
+                frames[frame_index].pan = other_val
+            else:
+                frames[frame_index].pan = calculated_val
+                frames[frame_index].tilt = other_val
+
+            frame_index += 1
+
