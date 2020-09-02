@@ -452,6 +452,91 @@ class PoseRefiner:
             pan_frames[pan_frame_index+1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
             100, -200)
 
+        ##################################################################################
+	    # Stage 4 (6 pan frames) - This stage performs a diagonal motion which involves both 
+	    # a pan and tilt at the same time. I need a special method to deal with this as there
+	    # isn't any pan and tilt measurements for this (couldn't capture them for the command
+	    # type EXECUTE_UPON_IMMEDIATE_OR_AWAIT which was required for doing simultaneous pan 
+	    # and tilt movements.
+        pan_frame_index = pan_frame_index + 1
+        self.diagonal_interpolation(frames, pan_frames[pan_frame_index].frame_num,\
+            pan_frames[pan_frame_index+1].frame_num, 400, -200,\
+            pan_frames[pan_frame_index].elapsed_time, pan_frames[pan_frame_index+1].elapsed_time,\
+            -100, 300)
+        pan_frame_index = pan_frame_index + 1
+        self.diagonal_interpolation(frames, pan_frames[pan_frame_index].frame_num,\
+            pan_frames[pan_frame_index+1].frame_num, -100, 300,\
+            pan_frames[pan_frame_index].elapsed_time, pan_frames[pan_frame_index+1].elapsed_time,\
+            -600, -200)
+        pan_frame_index = pan_frame_index + 1
+        self.diagonal_interpolation(frames, pan_frames[pan_frame_index].frame_num,\
+            pan_frames[pan_frame_index+1].frame_num, -600, -200,\
+            pan_frames[pan_frame_index].elapsed_time, pan_frames[pan_frame_index+1].elapsed_time,\
+            -100, -700)
+        pan_frame_index = pan_frame_index + 1
+        self.diagonal_interpolation(frames, pan_frames[pan_frame_index].frame_num,\
+            pan_frames[pan_frame_index+1].frame_num, -100, -700,\
+            pan_frames[pan_frame_index].elapsed_time, pan_frames[pan_frame_index+1].elapsed_time,\
+            400, 0)
+        
+        # at this stage we have technically finished the diagonal movements now we are just
+        # setting up for the next stage
+        pan_frame_index = pan_frame_index + 1
+        self.general_interpolation_fairly(frames, pan_frames[pan_frame_index].frame_num, 0,\
+            pan_frames[pan_frame_index].elapsed_time, 150, pan_frames[pan_frame_index+1].frame_num,\
+            pan_frames[pan_frame_index+1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
+            45, 400)
+        pan_frame_index = pan_frame_index + 1
+        self.general_interpolation_fairly(frames, pan_frames[pan_frame_index].frame_num, 400,\
+            pan_frames[pan_frame_index].elapsed_time, 0, pan_frames[pan_frame_index+1].frame_num,\
+            pan_frames[pan_frame_index+1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
+            100, 150)
+
+        ##################################################################################//
+	    # Stage 5 (2 pan frames) - Moving up down tilt
+        pan_frame_index = pan_frame_index + 1
+        self.general_interpolation_fairly(frames, pan_frames[pan_frame_index].frame_num, 150,\
+            pan_frames[pan_frame_index].elapsed_time, -550, pan_frames[pan_frame_index+1].frame_num,\
+            pan_frames[pan_frame_index+1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
+            45, 0)
+        pan_frame_index = pan_frame_index + 1
+        self.general_interpolation_fairly(frames, pan_frames[pan_frame_index].frame_num, -550,\
+            pan_frames[pan_frame_index].elapsed_time, 200, pan_frames[pan_frame_index+1].frame_num,\
+            pan_frames[pan_frame_index+1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
+            45, 0)
+
+        ##################################################################################//
+	    # Stage 6 (4 pan frames) - The Up/Down while moving forward
+        pan_frame_index = pan_frame_index + 1
+        self.general_interpolation_fairly(frames, pan_frames[pan_frame_index].frame_num, 200,\
+            pan_frames[pan_frame_index].elapsed_time, -400, pan_frames[pan_frame_index+1].frame_num,\
+            pan_frames[pan_frame_index+1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
+            75, 0)
+        pan_frame_index = pan_frame_index + 1
+        self.general_interpolation_fairly(frames, pan_frames[pan_frame_index].frame_num, -400,\
+            pan_frames[pan_frame_index].elapsed_time, 200, pan_frames[pan_frame_index+1].frame_num,\
+            pan_frames[pan_frame_index+1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
+            39, 0)
+        pan_frame_index = pan_frame_index + 1
+        self.general_interpolation_fairly(frames, pan_frames[pan_frame_index].frame_num, 200,\
+            pan_frames[pan_frame_index].elapsed_time, -400, pan_frames[pan_frame_index+1].frame_num,\
+            pan_frames[pan_frame_index+1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
+            39, 0)
+        pan_frame_index = pan_frame_index + 1
+        # this next movement can be skipped since it goes from -400 tilt to -400 tilt, for some reason it was the exact same movement
+        self.general_interpolation_fairly(frames, pan_frames[pan_frame_index].frame_num, -400,\
+            pan_frames[pan_frame_index].elapsed_time, -400, pan_frames[pan_frame_index+1].frame_num,\
+            pan_frames[pan_frame_index+1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
+            80, 0)
+        
+        ##################################################################################
+	    # Stage 7 (1 pan frame) - This is the final pan frame so i need to pass info on the last frame rather than the next pan_frame (since there isn't one)
+        pan_frame_index = pan_frame_index + 1
+        self.general_interpolation_fairly(frames, pan_frames[pan_frame_index].frame_num, -400,\
+            pan_frames[pan_frame_index].elapsed_time, 70, frames[len(frames)-1].frame_num,\
+            frames[len(frames)-1].elapsed_time, pan_frames[pan_frame_index].is_tilt,\
+            80, 0)
+
     def general_interpolation_fairly(self, frames, begin_frame, begin_value, begin_time,\
         end_position, last_frame, end_time, is_tilt, speed, other_val) -> int:
         """The alternate version of 'general_interpolation' used for the first couple of days of

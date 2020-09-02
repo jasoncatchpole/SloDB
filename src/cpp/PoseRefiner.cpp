@@ -263,8 +263,6 @@ bool PoseRefiner::ComputeFairlyAccuratePose(vector<FrameData> &frames, const vec
 	pan_iter++;
 	FairlyGeneralInterpolation(frames, (*pan_iter).frameNum, 0, (*pan_iter).elapsedTime, 400, (*(pan_iter+1)).frameNum, (*(pan_iter+1)).elapsedTime, (*pan_iter).isTilt, 100, -200); // this is a pan
 
-    OutputFramesToFile(frames, "C:\\temp\\stage12.csv");
-
 	//##################################################################################//
 	// Stage 4 (6 pan frames) - This stage performs a diagonal motion which involves both 
 	// a pan and tilt at the same time. I need a special method to deal with this as there
@@ -286,7 +284,6 @@ bool PoseRefiner::ComputeFairlyAccuratePose(vector<FrameData> &frames, const vec
 	FairlyGeneralInterpolation(frames, (*pan_iter).frameNum, 0, (*pan_iter).elapsedTime, 150, (*(pan_iter+1)).frameNum, (*(pan_iter+1)).elapsedTime, (*pan_iter).isTilt, 45, 400); // this is a tilt
 	pan_iter++;
 	FairlyGeneralInterpolation(frames, (*pan_iter).frameNum, 400, (*pan_iter).elapsedTime, 0, (*(pan_iter+1)).frameNum, (*(pan_iter+1)).elapsedTime, (*pan_iter).isTilt, 100, 150); // this is a pan
-
 
 	//##################################################################################//
 	// Stage 5 (2 pan frames) - Moving up down tilt
@@ -312,6 +309,8 @@ bool PoseRefiner::ComputeFairlyAccuratePose(vector<FrameData> &frames, const vec
 	// Stage 7 (1 pan frame) - This is the final pan frame so i need to pass info on the last frame rather than the next pan_frame (since there isn't one)
 	pan_iter++;
 	FairlyGeneralInterpolation(frames, (*pan_iter).frameNum, -400, (*pan_iter).elapsedTime, 70, (*(frames.end()-1)).frameNum, (*(frames.end()-1)).elapsedTime, (*pan_iter).isTilt, 80, 0); // this is a tilt
+
+    //OutputFramesToFile(frames, "C:\\temp\\stage12.csv");
 
 	return true;
 }
