@@ -11,7 +11,7 @@ from pose_refiner import PoseRefiner
 from frame_matcher import FrameMatcher
 
 video_frame_scale_factor = 0.7
-window_width = 1920
+window_width = 2150
 window_height = 1080
 
 # TODO:
@@ -26,6 +26,8 @@ window_height = 1080
 # - perhaps a button to force all sources to jump to a certain stage
 # - a seek slider which causes the reference (first) video source to seek to that location.
 #     - other sources will seek based on the reference frame
+# - For each video should show the video name but also which frame it is currently showing. Showing 
+#   which frame number will make it easier to tell when the seeking ends up getting a frame from some random place in video
 
 number_sources = 0
 sources = []
@@ -37,15 +39,22 @@ all_frames = []
 class GuiVideoSource:
     def __init__(self, video_capture_source, video_path):
         """Handles everything related to a video source used inside the seeva Gui application"""
+
+        global window
+
         self._setup_successfully = False
         self._file_source = video_capture_source
-        #self.gui_panel = panel
+        #self.video_panel = panel
 
         if not video_path.endswith(".avi"):
             print(f'ERROR: Cannot find the .avi extension in video file with path {video_path}')
             return
 
-        self.gui_panel = None        
+        self.video_panel = None
+        self.gui_panel = LabelFrame(window, text=video_path)
+        self.gui_panel.pack(side="left")
+        self.frame_number_label = Label(self.gui_panel, text='0')
+        self.frame_number_label.pack()
         self.frame_data = None
         self._video_file_path = video_path
         if not self.__read_ground_truth():
@@ -57,7 +66,7 @@ class GuiVideoSource:
         # read in the first frame and set the panel to this value
         ret, frame = self._file_source.read()
 
-        self.__set_current_image(frame)
+        self.__set_current_image(frame, 0)
         
         # image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         # print(f'Size of image before is {image.shape}')
@@ -74,13 +83,13 @@ class GuiVideoSource:
         # if the panels are None, initialize them
         #if panelA is None:
             # the first panel will store our original image
-        #self.gui_panel = Label(image=image)
-        #self.gui_panel.image = image
-        self.gui_panel.pack(side="left", padx=10, pady=10)
+        #self.video_panel = Label(image=image)
+        #self.video_panel.image = image
+        self.video_panel.pack(side="left", padx=10, pady=10)
 
         self._setup_successfully = True
     
-    def __set_current_image(self, opencv_frame):
+    def __set_current_image(self, opencv_frame, frame_num):
         """Sets the current image for the gui panel to that provided"""
 
         # perform some conversion to change from opencv image to tkinter
@@ -99,12 +108,17 @@ class GuiVideoSource:
         # ...and then to ImageTk format
         image = ImageTk.PhotoImage(image)
 
-        if self.gui_panel is None:
-            self.gui_panel = Label(image=image)
-            self.gui_panel.image = image
+        if self.video_panel is None:
+            print('Adding label to the combined panel')
+            self.video_panel = Label(self.gui_panel, image=image)
+            #self.gui_panel = Label(image=image)
+            self.video_panel.image = image
         else:
-            self.gui_panel.configure(image=image)
-            self.gui_panel.image = image
+            self.video_panel.configure(image=image)
+            self.video_panel.image = image
+        
+        self.frame_number_label['text'] = 'Frame: ' + str(frame_num)
+
     
     def __read_ground_truth(self) -> bool:
         """Reads all required ground truth files and performs the pose refinement"""
@@ -140,7 +154,7 @@ class GuiVideoSource:
         # now read the new frame
         ret, frame = self._file_source.read()
 
-        self.__set_current_image(frame)
+        self.__set_current_image(frame, frame_number)
         #pass
 
     def get_current_image(self):
@@ -246,7 +260,7 @@ select_image_btn = Button(window, text="Add new source", command=select_video)
 select_image_btn.pack(side="bottom", expand="yes", padx="10", pady="10")
 select_image_btn['font'] = button_font
 
-seek_slider = Scale(window, from_=0, to=100, resolution=0.1, orient=HORIZONTAL, length=window_width-200)
+seek_slider = Scale(window, from_=0, to=100, resolution=0.1, orient=HORIZONTAL, length=window_width-200, label="Video seek slider")
 seek_slider.bind("<ButtonRelease-1>", seek_event)
 seek_slider.pack()
 
