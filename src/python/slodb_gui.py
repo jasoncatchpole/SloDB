@@ -40,7 +40,7 @@ class GuiVideoSource:
     def __init__(self, video_capture_source, video_path):
         """Handles everything related to a video source used inside the seeva Gui application"""
 
-        global window
+        global video_frame
 
         self._setup_successfully = False
         self._file_source = video_capture_source
@@ -51,7 +51,7 @@ class GuiVideoSource:
             return
 
         self.video_panel = None
-        self.gui_panel = LabelFrame(window, text=video_path)
+        self.gui_panel = LabelFrame(video_frame, text=video_path)
         self.gui_panel.pack(side="left")
         self.frame_number_label = Label(self.gui_panel, text='0')
         self.frame_number_label.pack()
@@ -216,6 +216,10 @@ def select_video():
         #    panelA.configure(image=image)
         #    panelA.image = image
 
+def capture_images():
+    """Called when the capture images button is clicked"""
+    pass
+
 def seek_event(event):
     """Called when there is a change in the seek slider in the GUI. Updates all video sources to seek to the correct location"""
     global seek_slider, frame_matcher, sources, number_sources
@@ -245,7 +249,13 @@ def seek_event(event):
 window = Tk(className="SloDB GUI")
 window.geometry(str(window_width) + "x" + str(window_height))
 
-#panelA = None
+# create two frames:
+# - the first will take up the most area and will store the video panes
+# - the second will have the seek slider and the buttons
+video_frame = Frame(window, width=window_width-50, height=window_height-200, pady=3)
+video_frame.pack(fill=BOTH, expand=True)
+button_frame = Frame(window)
+button_frame.pack(fill=X, expand=True, side="bottom")
 
 #greeting = Label(text="Hello, Tkinter")
 #greeting.pack()
@@ -253,15 +263,22 @@ window.geometry(str(window_width) + "x" + str(window_height))
 # button font
 button_font = font.Font(weight="bold", size=30)
 
+
+capture_images_btn = Button(button_frame, text="Capture images", command=capture_images)
+capture_images_btn.pack(side="right", expand="yes", padx="10", pady="10")
+capture_images_btn['font'] = button_font
+
 # create a button, then when pressed, will trigger a file chooser
 # dialog and allow the user to select an input image; then add the
 # button the GUI
-select_image_btn = Button(window, text="Add new source", command=select_video)
-select_image_btn.pack(side="bottom", expand="yes", padx="10", pady="10")
+select_image_btn = Button(button_frame, text="Add new source", command=select_video)
+select_image_btn.pack(side="right", expand="yes", padx="10", pady="10")
 select_image_btn['font'] = button_font
 
-seek_slider = Scale(window, from_=0, to=100, resolution=0.1, orient=HORIZONTAL, length=window_width-200, label="Video seek slider")
+
+
+seek_slider = Scale(button_frame, from_=0, to=100, resolution=0.1, orient=HORIZONTAL, length=window_width-200, label="Video seek slider")
 seek_slider.bind("<ButtonRelease-1>", seek_event)
-seek_slider.pack()
+seek_slider.pack(side="bottom")
 
 window.mainloop()
