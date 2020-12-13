@@ -40,7 +40,7 @@ class GuiVideoSource:
     def __init__(self, video_capture_source, video_path):
         """Handles everything related to a video source used inside the seeva Gui application"""
 
-        global video_frame
+        global video_frame1, video_frame2, number_sources
 
         self._setup_successfully = False
         self._file_source = video_capture_source
@@ -51,7 +51,10 @@ class GuiVideoSource:
             return
 
         self.video_panel = None
-        self.gui_panel = LabelFrame(video_frame, text=video_path)
+        if number_sources < 5:
+            self.gui_panel = LabelFrame(video_frame1, text=video_path)
+        else:
+            self.gui_panel = LabelFrame(video_frame2, text=video_path)
         self.gui_panel.pack(side="left")
         self.frame_number_label = Label(self.gui_panel, text='0')
         self.frame_number_label.pack()
@@ -252,8 +255,10 @@ window.geometry(str(window_width) + "x" + str(window_height))
 # create two frames:
 # - the first will take up the most area and will store the video panes
 # - the second will have the seek slider and the buttons
-video_frame = Frame(window, width=window_width-50, height=window_height-200, pady=3)
-video_frame.pack(fill=BOTH, expand=True)
+video_frame1 = Frame(window, width=window_width-50, height=window_height-700, pady=3)
+video_frame1.pack(fill=X, expand=True)
+video_frame2 = Frame(window, width=window_width-50, height=window_height-700, pady=3)
+video_frame2.pack(fill=X, expand=True)
 button_frame = Frame(window)
 button_frame.pack(fill=X, expand=True, side="bottom")
 
