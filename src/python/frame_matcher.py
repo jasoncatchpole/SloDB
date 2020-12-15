@@ -39,11 +39,13 @@ class FrameMatcher:
 
             self._stage_list.append(stage_pairs)
 
-
-    # A seek has occured in the main video so find the positions the rest of the videos should be
-    # in to stay in sync with this one
-    def seek(self, main_pos):
+    def seek(self, main_pos) -> tuple:
+        """Determines the seek positions in each video in order to match (as closesly as possible) the frame in
+        the reference video (with index 'main_pos'). Returns a list of seek positions for the videos being matched
+        to the reference as well as their corresponding distances indicating how close each frame is to the reference
+        frame"""
         seek_positions = []
+        distances = []
 
         # make sure the number of entires (videos) in VideoFrames is >= 2
         if len(self._all_frames) < 2:
@@ -62,11 +64,12 @@ class FrameMatcher:
         main_frame = self._all_frames[0][main_pos]
 
         for other_video_index in range(1, len(self._all_frames)):
-            index = self.locate_closest_frame(main_frame, other_video_index)
+            index, closest_distance = self.locate_closest_frame(main_frame, other_video_index)
 
             seek_positions.append(index)
+            distances.append(closest_distance)
 
-        return seek_positions
+        return seek_positions, distances
 
     # Searches through 'frames' to find the closest frame in pose to 'mainFrame'
     def locate_closest_frame(self, main_frame, frame_set_index) -> int:
@@ -85,12 +88,12 @@ class FrameMatcher:
                 closest_distance = current_distance
                 match_index = self._all_frames[frame_set_index][current_index].frame_num
 
-        if closest_distance > 10:
+        if closest_distance > 40:
             match_index = -1
 
         # returns the index of the closest frame in 'frames' to 'mainFrame', returns -1 if no
         # match found
-        return match_index
+        return match_index, closest_distance
 
     # Calculates the distance between 2 frames
     @staticmethod

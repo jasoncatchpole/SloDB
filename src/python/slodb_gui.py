@@ -37,14 +37,14 @@ frame_matcher = None
 all_frames = []
 
 class GuiVideoSource:
-    def __init__(self, video_capture_source, video_path):
+    def __init__(self, video_capture_source, video_path, is_reference=False):
         """Handles everything related to a video source used inside the seeva Gui application"""
 
         global video_frame1, video_frame2, number_sources
 
         self._setup_successfully = False
         self._file_source = video_capture_source
-        #self.video_panel = panel
+        self._is_reference = is_reference
 
         if not video_path.endswith(".avi"):
             print(f'ERROR: Cannot find the .avi extension in video file with path {video_path}')
@@ -58,6 +58,11 @@ class GuiVideoSource:
         self.gui_panel.pack(side="left")
         self.frame_number_label = Label(self.gui_panel, text='0')
         self.frame_number_label.pack()
+        if not self._is_reference:
+            self.dist_to_ref_label = Label(self.gui_panel, text='0')
+        else:
+            self.dist_to_ref_label = Label(self.gui_panel)
+        self.dist_to_ref_label.pack()
         self.frame_data = None
         self._video_file_path = video_path
         if not self.__read_ground_truth():
@@ -69,7 +74,7 @@ class GuiVideoSource:
         # read in the first frame and set the panel to this value
         ret, frame = self._file_source.read()
 
-        self.__set_current_image(frame, 0)
+        self.__set_current_image(frame, 0, 0)
         
         # image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         # print(f'Size of image before is {image.shape}')
@@ -92,7 +97,7 @@ class GuiVideoSource:
 
         self._setup_successfully = True
     
-    def __set_current_image(self, opencv_frame, frame_num):
+    def __set_current_image(self, opencv_frame, frame_num, distance_to_reference):
         """Sets the current image for the gui panel to that provided"""
 
         # perform some conversion to change from opencv image to tkinter
@@ -121,7 +126,14 @@ class GuiVideoSource:
             self.video_panel.image = image
         
         self.frame_number_label['text'] = 'Frame: ' + str(frame_num)
-
+        
+        if not self._is_reference:
+            if distance_to_reference > 30:
+                self.dist_to_ref_label['text'] = 'Distance to reference: ' + f'{distance_to_reference:.3f}' + ' - POOR MATCH'
+                self.dist_to_ref_label.configure(foreground="red")
+            else:
+                self.dist_to_ref_label['text'] = 'Distance to reference: ' + f'{distance_to_reference:.3f}'
+                self.dist_to_ref_label.configure(foreground="green")
     
     def __read_ground_truth(self) -> bool:
         """Reads all required ground truth files and performs the pose refinement"""
@@ -145,7 +157,7 @@ class GuiVideoSource:
 
         return True
 
-    def seek(self, frame_number):
+    def seek(self, frame_number, distance_to_reference):
         # perform sanity check on the frame number requested
         if frame_number >= self.num_frames:
             print(f'Error - Cannot seek to frame {frame_number} as there are only {self.num_frames} in this source')
@@ -157,7 +169,7 @@ class GuiVideoSource:
         # now read the new frame
         ret, frame = self._file_source.read()
 
-        self.__set_current_image(frame, frame_number)
+        self.__set_current_image(frame, frame_number, distance_to_reference)
         #pass
 
     def get_current_image(self):
@@ -182,42 +194,16 @@ def select_video():
         
         number_sources += 1
 
-        sources.append(GuiVideoSource(vid_source, path))
+        sources.append(GuiVideoSource(vid_source, path, number_sources==1))
         all_frames.append(sources[number_sources-1].frame_data)
         frame_matcher = FrameMatcher(all_frames)
 
-        # ret, frame = vid_source.read()
+        seek_event(None)
 
-        # #  represents images in BGR order; however PIL represents
-        # # images in RGB order, so we need to swap the channels
-        # image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        # print(f'Size of image before is {image.shape}')
-        # image = cv2.resize(image, (math.ceil(image.shape[1] * video_frame_scale_factor),\
-        #     math.ceil(image.shape[0] * video_frame_scale_factor)))
-        # print(f'Size of image is {image.shape}')
-
-        # # convert the images to PIL format...
-        # image = Image.fromarray(image)
-
-        # # ...and then to ImageTk format
-        # image = ImageTk.PhotoImage(image)
-
-        # # if the panels are None, initialize them
-        # #if panelA is None:
-        #     # the first panel will store our original image
-        # panelA = Label(image=image)
-        # panelA.image = image
-        # panelA.pack(side="left", padx=10, pady=10)
-        # panel_label = Label(text=path)
-        # panel_label.pack(side="left", padx=10, pady=10)
-        # video_panel_labels.append(panel_label)
-        # video_panels.append(panelA)
-
-        # otherwise, update the image panels
-        #else:
-            # update the pannels
-        #    panelA.configure(image=image)
-        #    panelA.image = image
+def select_output_dir():
+    """Called when the user wishes to set the output directory to be used when the capture images button is pressed"""
+    print('About to set output dir')
+    pass
 
 def capture_images():
     """Called when the capture images button is clicked"""
@@ -232,20 +218,24 @@ def seek_event(event):
         # nothing to do
         return
 
-    # TODO: convert the floating value from seek_slider between 0-100 to a frame number based on num of frames in reference
+    # convert the floating value from seek_slider between 0-100 to a frame number based on num of frames in reference
     num_frames_reference = sources[0].num_frames
     reference_frame_to_seek = math.floor((seek_slider.get() / 100) * num_frames_reference)
+    sources[0].seek(reference_frame_to_seek, 0)
+
+    if number_sources <= 1:
+        # nothing to do
+        return
 
     # pull out the new seek positions for this new frame
-    seek_positions = frame_matcher.seek(reference_frame_to_seek)
+    seek_positions, distances = frame_matcher.seek(reference_frame_to_seek)
 
     # now iterate over the sources and get each one to seek to the appropriate position
     print(f'Slider position is {seek_slider.get()} num frames is {num_frames_reference}')
-    sources[0].seek(reference_frame_to_seek)
     if number_sources > 1:
-        print(f'Seek positions are {seek_positions}')
+        print(f'Seek positions are {seek_positions}, distances are {distances}')
         for src_index, source in enumerate(sources[1:], 1):
-            source.seek(seek_positions[src_index-1])
+            source.seek(seek_positions[src_index-1], distances[src_index-1])
     
 
 
@@ -262,12 +252,12 @@ video_frame2.pack(fill=X, expand=True)
 button_frame = Frame(window)
 button_frame.pack(fill=X, expand=True, side="bottom")
 
-#greeting = Label(text="Hello, Tkinter")
-#greeting.pack()
-
 # button font
-button_font = font.Font(weight="bold", size=30)
+button_font = font.Font(weight="bold", size=15)
 
+output_dir_btn = Button(button_frame, text="Set output dir", command=select_output_dir)
+output_dir_btn.pack(side="right", expand="yes", padx="10", pady="10")
+output_dir_btn['font'] = button_font
 
 capture_images_btn = Button(button_frame, text="Capture images", command=capture_images)
 capture_images_btn.pack(side="right", expand="yes", padx="10", pady="10")
