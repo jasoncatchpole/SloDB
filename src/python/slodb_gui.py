@@ -35,6 +35,9 @@ video_panels = []
 video_panel_labels = []
 frame_matcher = None
 all_frames = []
+current_reference_frame = 0
+capture_outputpath = ""
+capture_number = 0
 
 class GuiVideoSource:
     def __init__(self, video_capture_source, video_path, is_reference=False):
@@ -50,11 +53,12 @@ class GuiVideoSource:
             print(f'ERROR: Cannot find the .avi extension in video file with path {video_path}')
             return
 
+        self._video_name = Path(video_path).name
         self.video_panel = None
         if number_sources < 5:
-            self.gui_panel = LabelFrame(video_frame1, text=video_path)
+            self.gui_panel = LabelFrame(video_frame1, text=self._video_name, labelanchor='n')
         else:
-            self.gui_panel = LabelFrame(video_frame2, text=video_path)
+            self.gui_panel = LabelFrame(video_frame2, text=self._video_name, labelanchor='n')
         self.gui_panel.pack(side="left")
         self.frame_number_label = Label(self.gui_panel, text='0')
         self.frame_number_label.pack()
@@ -65,11 +69,15 @@ class GuiVideoSource:
         self.dist_to_ref_label.pack()
         self.frame_data = None
         self._video_file_path = video_path
+        
         if not self.__read_ground_truth():
             print('Failed to read in the ground truth data')
             return
 
         self.num_frames = len(self.frame_data)
+
+        self.current_frame = None
+        self.current_frame_number = None
 
         # read in the first frame and set the panel to this value
         ret, frame = self._file_source.read()
@@ -104,7 +112,9 @@ class GuiVideoSource:
 
         #  represents images in BGR order; however PIL represents
         # images in RGB order, so we need to swap the channels
+        self.current_frame = opencv_frame.copy()
         image = cv2.cvtColor(opencv_frame, cv2.COLOR_BGR2RGB)
+        self.current_frame_number = frame_num
         #print(f'Size of image before is {image.shape}')
         image = cv2.resize(image, (math.ceil(image.shape[1] * video_frame_scale_factor),\
             math.ceil(image.shape[0] * video_frame_scale_factor)))
@@ -170,10 +180,10 @@ class GuiVideoSource:
         ret, frame = self._file_source.read()
 
         self.__set_current_image(frame, frame_number, distance_to_reference)
-        #pass
 
     def get_current_image(self):
         """Returns the current image based on the seek position in the video"""
+        return self.current_frame, self.current_frame_number
 
 
 def select_video():
@@ -202,12 +212,60 @@ def select_video():
 
 def select_output_dir():
     """Called when the user wishes to set the output directory to be used when the capture images button is pressed"""
-    print('About to set output dir')
-    pass
+    global capture_outputpath
+    capture_outputpath = tkFileDialog.askdirectory()
+    print(f'About to set output dir to {capture_outputpath}')
 
 def capture_images():
     """Called when the capture images button is clicked"""
-    pass
+    global capture_outputpath, sources, number_sources, capture_number
+
+    if number_sources == 0:
+        # nothing to do
+        return
+    if capture_outputpath is None or capture_outputpath == "":
+        print('Error - Cannot capture images as output capture directory has not been set')
+        return
+
+    # go through each source video and get a copy of the current frame as well as the name of the video and the frame number
+    for src_index, source in enumerate(sources):
+        # form the output filename, it will be of the form <capture number>-<video name>-<frame number>-<optional: ref>.jpg. Here the 'capture number'
+        # is used to associate each of the frames together so they are grouped
+        ref_frame = ""
+        if src_index == 0:
+            ref_frame = "-ref"
+        out_filename = str(capture_number) + '-' + str(source._video_name) + '-' + str(source.current_frame_number) + ref_frame + '.jpg'
+        output_path = Path(capture_outputpath, out_filename)
+
+        print(f'Capturing image to {output_path}. Img has dimensions {source.current_frame.shape}')
+
+        cv2.imwrite(str(output_path), source.current_frame)
+
+    capture_number += 1
+
+def next_frame():
+    """Called when the '>' button is pressed which advances to the next frame"""
+    global current_reference_frame
+
+    if number_sources == 0:
+        # nothing to do
+        return
+    num_frames_reference = sources[0].num_frames
+
+    if current_reference_frame >= num_frames_reference:
+        return
+
+    current_reference_frame += 1
+    perform_seek(current_reference_frame)
+
+def previous_frame():
+    """Called when the '<' button is pressed which goes back to the previous frame"""
+    global current_reference_frame
+    if current_reference_frame <= 0:
+        return
+
+    current_reference_frame -= 1
+    perform_seek(current_reference_frame)
 
 def seek_event(event):
     """Called when there is a change in the seek slider in the GUI. Updates all video sources to seek to the correct location"""
@@ -221,10 +279,24 @@ def seek_event(event):
     # convert the floating value from seek_slider between 0-100 to a frame number based on num of frames in reference
     num_frames_reference = sources[0].num_frames
     reference_frame_to_seek = math.floor((seek_slider.get() / 100) * num_frames_reference)
+    perform_seek(reference_frame_to_seek)
+
+def perform_seek(reference_frame_to_seek):
+    """Performs the actual seek operation given the frame requested to see to in the reference video. This method
+    also advances all other videos to their matching frames"""
+    global sources, current_reference_frame, number_sources
+    if number_sources == 0:
+        # nothing to do
+        return
+    num_frames_reference = sources[0].num_frames
+    if reference_frame_to_seek >= num_frames_reference:
+        # nothing to do, frame requested is beyond end of video
+        return
     sources[0].seek(reference_frame_to_seek, 0)
+    current_reference_frame = reference_frame_to_seek
 
     if number_sources <= 1:
-        # nothing to do
+        # nothing more to do
         return
 
     # pull out the new seek positions for this new frame
@@ -237,7 +309,6 @@ def seek_event(event):
         for src_index, source in enumerate(sources[1:], 1):
             source.seek(seek_positions[src_index-1], distances[src_index-1])
     
-
 
 window = Tk(className="SloDB GUI")
 window.geometry(str(window_width) + "x" + str(window_height))
@@ -270,10 +341,18 @@ select_image_btn = Button(button_frame, text="Add new source", command=select_vi
 select_image_btn.pack(side="right", expand="yes", padx="10", pady="10")
 select_image_btn['font'] = button_font
 
+next_frame_btn = Button(button_frame, text=">", command=next_frame)
+next_frame_btn.pack(side="right", expand="yes", padx="10", pady="10")
+next_frame_btn['font'] = button_font
 
+prev_frame_btn = Button(button_frame, text="<", command=previous_frame)
+prev_frame_btn.pack(side="right", expand="yes", padx="10", pady="10")
+prev_frame_btn['font'] = button_font
 
 seek_slider = Scale(button_frame, from_=0, to=100, resolution=0.1, orient=HORIZONTAL, length=window_width-200, label="Video seek slider")
 seek_slider.bind("<ButtonRelease-1>", seek_event)
 seek_slider.pack(side="bottom")
+
+
 
 window.mainloop()
