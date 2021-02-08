@@ -76,11 +76,29 @@ class FrameMatcher:
         match_index = -1
         closest_distance = 999999999
 
+        # compute the percentage through the stage the reference is
+        if main_frame.frame_num - self._stage_list[main_frame.stage][0][0] == 0:
+            percentage_through = 0
+        else:    
+            percentage_through = (main_frame.frame_num - self._stage_list[main_frame.stage][0][0]) / (self._stage_list[main_frame.stage][0][1] - self._stage_list[main_frame.stage][0][0])
+
         # first get the rough position by using the stage of the main frame and getting the
         # corresponding stage in the other videos
-        begin_frame = self._stage_list[main_frame.stage][frame_set_index][0]
-        end_frame = self._stage_list[main_frame.stage][frame_set_index][1]
+        begin_frame_stage = self._stage_list[main_frame.stage][frame_set_index][0]
+        end_frame_stage = self._stage_list[main_frame.stage][frame_set_index][1]
+        frame_range = end_frame_stage - begin_frame_stage
 
+        # now take the reference's position through the range and apply this to the other video
+        if main_frame.stage == 0:
+            percentage_through_start = 0
+            percentage_through_end = 1.0
+        else:
+            percentage_through_start = max(0, percentage_through - 0.1)
+            percentage_through_end = min(1.0, percentage_through + 0.1)
+
+        begin_frame = math.floor(begin_frame_stage + (percentage_through_start * frame_range))
+        end_frame = math.floor(begin_frame_stage + (percentage_through_end * frame_range))
+        
         for current_index in range(begin_frame, end_frame):
             current_distance = FrameMatcher.distance(main_frame, self._all_frames[frame_set_index][current_index])
 

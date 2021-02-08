@@ -1,5 +1,6 @@
 from tkinter import *
 import math
+import threading
 import cv2
 from PIL import Image
 from PIL import ImageTk
@@ -38,6 +39,7 @@ all_frames = []
 current_reference_frame = 0
 capture_outputpath = ""
 capture_number = 0
+should_stop_playback = threading.Event()
 
 class GuiVideoSource:
     def __init__(self, video_capture_source, video_path, is_reference=False):
@@ -243,29 +245,55 @@ def capture_images():
 
     capture_number += 1
 
-def next_frame():
-    """Called when the '>' button is pressed which advances to the next frame"""
+def next_frame() -> bool:
+    """Called when the '>>' button is pressed which advances to the next frame"""
     global current_reference_frame
 
     if number_sources == 0:
         # nothing to do
-        return
+        return False
     num_frames_reference = sources[0].num_frames
 
     if current_reference_frame >= num_frames_reference:
-        return
+        return False
 
     current_reference_frame += 1
     perform_seek(current_reference_frame)
+    update_scale_position()
+
+    return True
 
 def previous_frame():
-    """Called when the '<' button is pressed which goes back to the previous frame"""
+    """Called when the '<<' button is pressed which goes back to the previous frame"""
     global current_reference_frame
     if current_reference_frame <= 0:
         return
 
     current_reference_frame -= 1
     perform_seek(current_reference_frame)
+    update_scale_position()
+
+def playout_video():
+    """Performs the playout of the video, called by begin_playback() in a separate thread"""
+    global should_stop_playback, current_reference_frame
+    while not should_stop_playback.is_set():
+        if not next_frame(): # if this fails it either means we have reached the end of the file or we don't even have a file open
+            break
+
+def begin_playback():
+    """Called when the play button is clicked. Begins playback of the video along with synchronization
+    of the other videos"""
+    # kicks off a thread that continually calls "next_frame" in order to cycle through frames. Only stops
+    # when the last frame of the reference video is reached or if instructed to stop by a stop button press
+    global should_stop_playback
+    should_stop_playback.clear()
+
+    threading.Thread(target=playout_video).start()
+
+def stop_playback():
+    """Called when the stop button is clicked. Stops ongoing playback"""
+    global should_stop_playback
+    should_stop_playback.set()
 
 def seek_event(event):
     """Called when there is a change in the seek slider in the GUI. Updates all video sources to seek to the correct location"""
@@ -309,6 +337,19 @@ def perform_seek(reference_frame_to_seek):
         for src_index, source in enumerate(sources[1:], 1):
             source.seek(seek_positions[src_index-1], distances[src_index-1])
     
+def update_scale_position():
+    """Updates the current value for the Scale slider indicating position through the video"""
+    global seek_slider, current_reference_frame
+
+    if number_sources == 0:
+        # nothing to do
+        return False
+    num_frames_reference = sources[0].num_frames
+
+    # determine the seek sliders value in order to accurately reflect the reference frame number we are now on
+    reference_frame_to_seek = (current_reference_frame / num_frames_reference) * 100
+    seek_slider.set(reference_frame_to_seek)
+
 
 window = Tk(className="SloDB GUI")
 window.geometry(str(window_width) + "x" + str(window_height))
@@ -341,13 +382,21 @@ select_image_btn = Button(button_frame, text="Add new source", command=select_vi
 select_image_btn.pack(side="right", expand="yes", padx="10", pady="10")
 select_image_btn['font'] = button_font
 
-next_frame_btn = Button(button_frame, text=">", command=next_frame)
+next_frame_btn = Button(button_frame, text='>>', command=next_frame)
 next_frame_btn.pack(side="right", expand="yes", padx="10", pady="10")
 next_frame_btn['font'] = button_font
 
-prev_frame_btn = Button(button_frame, text="<", command=previous_frame)
+prev_frame_btn = Button(button_frame, text="<<", command=previous_frame)
 prev_frame_btn.pack(side="right", expand="yes", padx="10", pady="10")
 prev_frame_btn['font'] = button_font
+
+stop_btn = Button(button_frame, text="Stop", command=stop_playback)
+stop_btn.pack(side="right", expand="yes", padx="10", pady="10")
+stop_btn['font'] = button_font
+
+play_btn = Button(button_frame, text="Play", command=begin_playback)
+play_btn.pack(side="right", expand="yes", padx="10", pady="10")
+play_btn['font'] = button_font
 
 seek_slider = Scale(button_frame, from_=0, to=100, resolution=0.1, orient=HORIZONTAL, length=window_width-200, label="Video seek slider")
 seek_slider.bind("<ButtonRelease-1>", seek_event)
