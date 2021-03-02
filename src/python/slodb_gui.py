@@ -13,7 +13,7 @@ from frame_matcher import FrameMatcher
 
 video_frame_scale_factor = 0.7
 window_width = 2150
-window_height = 1080
+window_height = 1200
 
 # TODO:
 # - Button - add new source
@@ -49,6 +49,7 @@ class GuiVideoSource:
 
         self._setup_successfully = False
         self._file_source = video_capture_source
+        self._num_frames_file_source = int(self._file_source.get(cv2.CAP_PROP_FRAME_COUNT))
         self._is_reference = is_reference
 
         if not video_path.endswith(".avi"):
@@ -69,6 +70,9 @@ class GuiVideoSource:
         else:
             self.dist_to_ref_label = Label(self.gui_panel)
         self.dist_to_ref_label.pack()
+        self.debug_info = Label(self.gui_panel, text='')
+        self.debug_info.pack()
+        self.debug_on = False
         self.frame_data = None
         self._video_file_path = video_path
         
@@ -77,6 +81,9 @@ class GuiVideoSource:
             return
 
         self.num_frames = len(self.frame_data)
+
+        if abs(self._num_frames_file_source - self.num_frames) > 5:
+            print(f'ERROR: Number of frames in video does not match ground truth! Video has {self._num_frames_file_source} while ground truth indicates {self.num_frames}')
 
         self.current_frame = None
         self.current_frame_number = None
@@ -129,7 +136,6 @@ class GuiVideoSource:
         image = ImageTk.PhotoImage(image)
 
         if self.video_panel is None:
-            print('Adding label to the combined panel')
             self.video_panel = Label(self.gui_panel, image=image)
             #self.gui_panel = Label(image=image)
             self.video_panel.image = image
@@ -137,7 +143,7 @@ class GuiVideoSource:
             self.video_panel.configure(image=image)
             self.video_panel.image = image
         
-        self.frame_number_label['text'] = 'Frame: ' + str(frame_num)
+        self.frame_number_label['text'] = 'Frame: ' + str(frame_num) + " (" + str(self._num_frames_file_source) + ")"
         
         if not self._is_reference:
             if distance_to_reference > 30:
@@ -146,6 +152,9 @@ class GuiVideoSource:
             else:
                 self.dist_to_ref_label['text'] = 'Distance to reference: ' + f'{distance_to_reference:.3f}'
                 self.dist_to_ref_label.configure(foreground="green")
+        
+        # if debug info is enabled we had better update it now
+        self.__update_frame_debug_info()
     
     def __read_ground_truth(self) -> bool:
         """Reads all required ground truth files and performs the pose refinement"""
@@ -169,13 +178,32 @@ class GuiVideoSource:
 
         return True
 
+    def set_debug(self, enable) -> None:
+        """Enables or disables showing of debug information along with the video image.
+        Shows pan, tilt, X & Y position, stage number, and number of frames in current stage"""
+        self.debug_on = enable
+        self.__update_frame_debug_info()
+    
+    def __update_frame_debug_info(self) -> None:
+        """Updates the text string containing the debug info"""
+        if not self.debug_on:
+            self.debug_info['text'] = ''
+            return
+        # check to make sure we have the frame data element in question
+        if self.current_frame_number >= len(self.frame_data):
+            print(f'Error: attempting to update the debug info for frame {self.current_frame_number} but only {len(self.frame_data)} frames in source')
+            self.debug_info['text'] = ''
+            return
+        self.debug_info['text'] = 'Pan: ' + f'{self.frame_data[self.current_frame_number].pan:.1f}' + ', Tilt: ' + f'{self.frame_data[self.current_frame_number].tilt:.1f}' +\
+            ', X: ' + f'{self.frame_data[self.current_frame_number].x_pos}' + ', Y: ' + f'{self.frame_data[self.current_frame_number].y_pos}' +\
+            ', Stage: ' + f'{self.frame_data[self.current_frame_number].stage}'
+
     def seek(self, frame_number, distance_to_reference):
         # perform sanity check on the frame number requested
         if frame_number >= self.num_frames:
             print(f'Error - Cannot seek to frame {frame_number} as there are only {self.num_frames} in this source')
             return
 
-        print(f'Got request to seek to {frame_number}')
         self._file_source.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
 
         # now read the new frame
@@ -295,10 +323,17 @@ def stop_playback():
     global should_stop_playback
     should_stop_playback.set()
 
+def set_debug():
+    """Called when the user opts to enable the debug information to show pan, tilt and stage info on top of the video"""
+    global sources, show_stage_debug
+
+    # iterate over all the video sources and instruct them to show debug info
+    for source in sources:
+        source.set_debug(show_stage_debug.get())
+
 def seek_event(event):
     """Called when there is a change in the seek slider in the GUI. Updates all video sources to seek to the correct location"""
     global seek_slider, frame_matcher, sources, number_sources
-    print(f'Event has occurred with value {seek_slider.get()}')
 
     if number_sources == 0:
         # nothing to do
@@ -331,9 +366,7 @@ def perform_seek(reference_frame_to_seek):
     seek_positions, distances = frame_matcher.seek(reference_frame_to_seek)
 
     # now iterate over the sources and get each one to seek to the appropriate position
-    print(f'Slider position is {seek_slider.get()} num frames is {num_frames_reference}')
     if number_sources > 1:
-        print(f'Seek positions are {seek_positions}, distances are {distances}')
         for src_index, source in enumerate(sources[1:], 1):
             source.seek(seek_positions[src_index-1], distances[src_index-1])
     
@@ -353,6 +386,16 @@ def update_scale_position():
 
 window = Tk(className="SloDB GUI")
 window.geometry(str(window_width) + "x" + str(window_height))
+
+menubar = Menu(window)
+file_menu = Menu(menubar, tearoff=0)
+file_menu.add_command(label="Add new source", command=select_video)
+file_menu.add_command(label="Exit", command=window.quit)
+menubar.add_cascade(label="File", menu=file_menu)
+debug_menu = Menu(menubar, tearoff=0)
+show_stage_debug = BooleanVar(window)
+debug_menu.add_checkbutton(label="Show Stage Debug", onvalue=1, offvalue=0, variable=show_stage_debug, command=set_debug)
+menubar.add_cascade(label="Debug", menu=debug_menu)
 
 # create two frames:
 # - the first will take up the most area and will store the video panes
@@ -403,5 +446,5 @@ seek_slider.bind("<ButtonRelease-1>", seek_event)
 seek_slider.pack(side="bottom")
 
 
-
+window.config(menu=menubar)
 window.mainloop()

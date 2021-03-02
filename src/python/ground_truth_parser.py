@@ -8,17 +8,17 @@ class GroundTruthParser:
 
     def __init__(self):
         """Blah"""
-        print("Setting up ground truth parser")
+        pass
         
 
     def read_file(self, ground_truth_path) -> list:
         """
 
         Arguments:
-            ground_truth_path {[type]} -- [description]
+            ground_truth_path {[str]} -- [The path to the ground truth file to read]
 
         Returns:
-            bool -- [description]
+            list -- [A list of FrameData objects, one for each frame in the ground truth]
         """
         # make sure the file exists
         if not Path(ground_truth_path).is_file():
