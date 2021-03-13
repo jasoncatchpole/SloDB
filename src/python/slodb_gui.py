@@ -83,7 +83,7 @@ class GuiVideoSource:
         self.num_frames = len(self.frame_data)
 
         if abs(self._num_frames_file_source - self.num_frames) > 5:
-            print(f'ERROR: Number of frames in video does not match ground truth! Video has {self._num_frames_file_source} while ground truth indicates {self.num_frames}')
+            print(f'ERROR: {self._video_name} - Number of frames in video does not match ground truth! Video has {self._num_frames_file_source} while ground truth indicates {self.num_frames}')
 
         self.current_frame = None
         self.current_frame_number = None
@@ -158,8 +158,17 @@ class GuiVideoSource:
     
     def __read_ground_truth(self) -> bool:
         """Reads all required ground truth files and performs the pose refinement"""
-        ground_truth_path = self._video_file_path[:-4] + '.csv'
-        pandata_path = self._video_file_path[:-4] + '_PANDATA.csv'
+        # determine if this video file name has any additional information inside brackets. If so we'll need
+        # to remove this info as the ground truth files won't have that same info
+        if self._video_name.find("(") == -1:
+            ground_truth_path = self._video_file_path[:-4] + '.csv'
+            pandata_path = self._video_file_path[:-4] + '_PANDATA.csv'
+        else:
+            startSubstr = self._video_file_path.rfind("(")
+            endSubstr = self._video_file_path.rfind(")")
+            ground_truth_path = self._video_file_path[0:startSubstr-1] + ".csv"
+            pandata_path = self._video_file_path[0:startSubstr-1] + '_PANDATA.csv'
+        
         if not Path(ground_truth_path).is_file():
             print(f'ERROR: Ground truth file does not exist. Path = {ground_truth_path}')
             return False

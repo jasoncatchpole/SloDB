@@ -58,6 +58,10 @@ class TestFrameMatcher(unittest.TestCase):
         self.assertEqual(seek_positions[0], 288)
         self.assertEqual(seek_positions[1], 178)
 
+        seek_positions, distances = frame_matcher.seek(8409) # in stage 8
+        self.assertEqual(seek_positions[0], 8419)
+        self.assertEqual(seek_positions[1], 7751)
+
     def test_frame_matcher_failure_case(self):
         """This test covers a failure case detected when using the GUI"""
         file_parser = GroundTruthParser()

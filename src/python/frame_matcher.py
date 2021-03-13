@@ -24,7 +24,7 @@ class FrameMatcher:
         they can be searched more quickly"""
         
         # go through each of the 8 stages
-        for current_stage in range(0, 8):
+        for current_stage in range(0, 9):
             stage_pairs = []
 
             for current_video_frames in self._all_frames:
