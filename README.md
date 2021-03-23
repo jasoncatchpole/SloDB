@@ -9,9 +9,9 @@ The dataset is stored on Google drive in the following folder [here](https://dri
 The following are the individual links to the 7zip compressed files:
 - [2006-01-23 - download - 7GB](https://drive.google.com/open?id=1MHblfCz5b0WikmQbJEWJPaXn76P51Xne)
 - [2006-01-24 - download - 28GB](https://drive.google.com/open?id=1eH_LLBVun67xYKusnyGBIG-xXKbTzwO8)
-- [2006-01-25 - download - 8GB](https://drive.google.com/open?id=1u1meyvriTj2wRJn27AnuEThBVWmlmF5G)
+- [2006-01-25 - download - 7GB](https://drive.google.com/file/d/1Khlq0nMzzk6Unr1z8IiIqBB4gUcF-fkN/view?usp=sharing)
 - [2006-01-26 - download - 9GB](https://drive.google.com/open?id=15vSmEI7ZxsQ53ppvhR136U1mk61c9Sqm)
-- [2006-01-27 - download - 7GB](https://drive.google.com/open?id=1Nrli5MmPmS-_dW2Tyw7hTTu5MsfqFzzQ)
+- [2006-01-27 - download - 6GB](https://drive.google.com/file/d/1bW52IKOam1V3lqlU7ZU2Xj5Vgp3rIcyc/view?usp=sharing)
 - [2006-01-28 - download - 16GB](https://drive.google.com/open?id=1e9klK0HJxtTNTF_n8G6u44jquLFUioyC)
 - [2006-01-30 - download - 5GB](https://drive.google.com/open?id=1BfOYdI6XbLcdIE7NBiUnjef3caLiKN__)
 - [2006-01-31 - download - 4GB](https://drive.google.com/open?id=1ZaP3p5STHHAHuO1EoFPBKTzS57Qny-Il)
