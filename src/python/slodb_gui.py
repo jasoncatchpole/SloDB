@@ -82,7 +82,7 @@ class GuiVideoSource:
 
         self.num_frames = len(self.frame_data)
 
-        if abs(self._num_frames_file_source - self.num_frames) > 5:
+        if abs(self._num_frames_file_source - self.num_frames) > 100:
             print(f'ERROR: {self._video_name} - Number of frames in video does not match ground truth! Video has {self._num_frames_file_source} while ground truth indicates {self.num_frames}')
 
         self.current_frame = None
@@ -226,6 +226,8 @@ class GuiVideoSource:
 
 
 def select_video():
+    """Called when the user wishes to open another video. Sets up the video to be read in and updates the frame
+    matcher to be able to match (synchronize) between all the videos including the new one"""
     # grab a reference to the image panels
     global video_panels, sources, number_sources, frame_matcher
 
