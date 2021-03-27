@@ -52,18 +52,9 @@ alt="Example video from SloDB" width="360" height="289" border="10" /></a>
 There are several limitations to this dataset. Firstly, during some motion sequences there is a reflection of the camera's lens. Secondly, no ground truth information on the weather conditions were recorded. Lastly, due to the relatively short duration the capture system was set up it does not capture any significant seasonal variation. Additionally, during the capture period it did not capture rainfall or snowfall.
 
 ## Source code
-There are two versions of the source code, one in python and another in C++. The C++ version is the original code developed during my PhD. The python version was ported from the C++ version, the primary purpose of both versions is to read in and take advantage of the ground truth information to enable synchronization between any given video and any number of other videos, e.g. determine frames corresponding to frame 22 from video 1 to videos 6, 9, and 12. Unlike the C++ version the python version has the ability to actually load and display the video files synchronized with each other such that the user can seek to a given frame in the reference video and see all other videos automatically seek to the closest matching frames.
+There are two versions of the source code, one in python and another in C++. The C++ version is the original code developed during my PhD. The python version was ported from the C++ version, the primary purpose of both versions is to read in and take advantage of the ground truth information to enable synchronization between any given video and any number of other videos, e.g. determine frames corresponding to frame 22 from video 1 to videos 6, 9, and 12. Unlike the C++ version the python version has a simple GUI to actually load and display the video files synchronized with each other such that the user can seek to a given frame in the reference video and see all other videos automatically seek to the closest matching frames.
 
-### Python requirements
-Follow [this guide](https://pygobject.readthedocs.io/en/latest/getting_started.html) for getting started with PyGObject (includes links for various platforms). 
-
-Under Windows the software distribution and building platform 'msys2' is used. The following commands show the pacman (package management system in msys2) commands to install the various packages for [gstreamer](https://packages.msys2.org/package/mingw-w64-x86_64-gst-python)
-```
-pacman -Su
-pacman -S mingw-w64-x86_64-gtk3 mingw-w64-x86_64-python3 mingw-w64-x86_64-python3-gobject
-pacman -S mingw-w64-x86_64-gst-python
-```
-
+It is highly recommended to use the python version as not only does it have a GUI but there are also several improvements and bug fixes not present in the original C++. Check out [the readme in the python folder](/src/python/README.md) for more details about the python code.
 
 ## Citations
 If you find this project useful please cite the following work:
