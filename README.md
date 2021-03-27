@@ -54,7 +54,7 @@ There are several limitations to this dataset. Firstly, during some motion seque
 ## Source code
 There are two versions of the source code, one in python and another in C++. The C++ version is the original code developed during my PhD. The python version was ported from the C++ version, the primary purpose of both versions is to read in and take advantage of the ground truth information to enable synchronization between any given video and any number of other videos, e.g. determine frames corresponding to frame 22 from video 1 to videos 6, 9, and 12. Unlike the C++ version the python version has a simple GUI to actually load and display the video files synchronized with each other such that the user can seek to a given frame in the reference video and see all other videos automatically seek to the closest matching frames.
 
-It is highly recommended to use the python version as not only does it have a GUI but there are also several improvements and bug fixes not present in the original C++. Check out [the readme in the python folder](/src/python/README.md) for more details about the python code.
+It is highly recommended to use the python version as not only does it have a GUI but there are also several improvements and bug fixes not present in the original C++. Check out [the readme in the python folder](/src/python/) for more details about the python code.
 
 ## Citations
 If you find this project useful please cite the following work:
