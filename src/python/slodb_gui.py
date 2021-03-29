@@ -93,23 +93,6 @@ class GuiVideoSource:
 
         self.__set_current_image(frame, 0, 0)
         
-        # image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        # print(f'Size of image before is {image.shape}')
-        # image = cv2.resize(image, (math.ceil(image.shape[1] * video_frame_scale_factor),\
-        #     math.ceil(image.shape[0] * video_frame_scale_factor)))
-        # print(f'Size of image is {image.shape}')
-
-        # # convert the images to PIL format...
-        # image = Image.fromarray(image)
-
-        # # ...and then to ImageTk format
-        # image = ImageTk.PhotoImage(image)
-
-        # if the panels are None, initialize them
-        #if panelA is None:
-            # the first panel will store our original image
-        #self.video_panel = Label(image=image)
-        #self.video_panel.image = image
         self.video_panel.pack(side="left", padx=10, pady=10)
 
         self._setup_successfully = True
@@ -124,11 +107,10 @@ class GuiVideoSource:
         self.current_frame = opencv_frame.copy()
         image = cv2.cvtColor(opencv_frame, cv2.COLOR_BGR2RGB)
         self.current_frame_number = frame_num
-        #print(f'Size of image before is {image.shape}')
+        
         image = cv2.resize(image, (math.ceil(image.shape[1] * video_frame_scale_factor),\
             math.ceil(image.shape[0] * video_frame_scale_factor)))
-        #print(f'Size of image is {image.shape}')
-
+        
         # convert the images to PIL format...
         image = Image.fromarray(image)
 
@@ -137,7 +119,6 @@ class GuiVideoSource:
 
         if self.video_panel is None:
             self.video_panel = Label(self.gui_panel, image=image)
-            #self.gui_panel = Label(image=image)
             self.video_panel.image = image
         else:
             self.video_panel.configure(image=image)
@@ -208,6 +189,7 @@ class GuiVideoSource:
             ', Stage: ' + f'{self.frame_data[self.current_frame_number].stage}'
 
     def seek(self, frame_number, distance_to_reference):
+        """Performs the seek in the video file source to that frame provided in 'frame_number'"""
         # perform sanity check on the frame number requested
         if frame_number >= self.num_frames:
             print(f'Error - Cannot seek to frame {frame_number} as there are only {self.num_frames} in this source')
@@ -377,9 +359,8 @@ def perform_seek(reference_frame_to_seek):
     seek_positions, distances = frame_matcher.seek(reference_frame_to_seek)
 
     # now iterate over the sources and get each one to seek to the appropriate position
-    if number_sources > 1:
-        for src_index, source in enumerate(sources[1:], 1):
-            source.seek(seek_positions[src_index-1], distances[src_index-1])
+    for src_index, source in enumerate(sources[1:], 1):
+        source.seek(seek_positions[src_index-1], distances[src_index-1])
     
 def update_scale_position():
     """Updates the current value for the Scale slider indicating position through the video"""
@@ -394,10 +375,11 @@ def update_scale_position():
     reference_frame_to_seek = (current_reference_frame / num_frames_reference) * 100
     seek_slider.set(reference_frame_to_seek)
 
-
+# setup tkinter window
 window = Tk(className="SloDB GUI")
 window.geometry(str(window_width) + "x" + str(window_height))
 
+# setup menu bar for tkinter window
 menubar = Menu(window)
 file_menu = Menu(menubar, tearoff=0)
 file_menu.add_command(label="Add new source", command=select_video)
@@ -408,9 +390,10 @@ show_stage_debug = BooleanVar(window)
 debug_menu.add_checkbutton(label="Show Stage Debug", onvalue=1, offvalue=0, variable=show_stage_debug, command=set_debug)
 menubar.add_cascade(label="Debug", menu=debug_menu)
 
-# create two frames:
-# - the first will take up the most area and will store the video panes
-# - the second will have the seek slider and the buttons
+# create three frames:
+# - the first will store the top row of video panes
+# - the second will store the bottom row of video panes
+# - the third will store the controls
 video_frame1 = Frame(window, width=window_width-50, height=window_height-700, pady=3)
 video_frame1.pack(fill=X, expand=True)
 video_frame2 = Frame(window, width=window_width-50, height=window_height-700, pady=3)
@@ -421,21 +404,23 @@ button_frame.pack(fill=X, expand=True, side="bottom")
 # button font
 button_font = font.Font(weight="bold", size=15)
 
+# setup the button for setting the output dir
 output_dir_btn = Button(button_frame, text="Set output dir", command=select_output_dir)
 output_dir_btn.pack(side="right", expand="yes", padx="10", pady="10")
 output_dir_btn['font'] = button_font
 
+# setup button for capturing the images
 capture_images_btn = Button(button_frame, text="Capture images", command=capture_images)
 capture_images_btn.pack(side="right", expand="yes", padx="10", pady="10")
 capture_images_btn['font'] = button_font
 
-# create a button, then when pressed, will trigger a file chooser
-# dialog and allow the user to select an input image; then add the
-# button the GUI
+# create a button that when pressed, will trigger a file chooser
+# dialog and allow the user to select an input image
 select_image_btn = Button(button_frame, text="Add new source", command=select_video)
 select_image_btn.pack(side="right", expand="yes", padx="10", pady="10")
 select_image_btn['font'] = button_font
 
+# next two buttons advance video by one frame or go back by one respectively
 next_frame_btn = Button(button_frame, text='>>', command=next_frame)
 next_frame_btn.pack(side="right", expand="yes", padx="10", pady="10")
 next_frame_btn['font'] = button_font
@@ -444,18 +429,20 @@ prev_frame_btn = Button(button_frame, text="<<", command=previous_frame)
 prev_frame_btn.pack(side="right", expand="yes", padx="10", pady="10")
 prev_frame_btn['font'] = button_font
 
+# stops continuous playback if initiated by the play button below
 stop_btn = Button(button_frame, text="Stop", command=stop_playback)
 stop_btn.pack(side="right", expand="yes", padx="10", pady="10")
 stop_btn['font'] = button_font
 
+# begins continuous playback
 play_btn = Button(button_frame, text="Play", command=begin_playback)
 play_btn.pack(side="right", expand="yes", padx="10", pady="10")
 play_btn['font'] = button_font
 
+# the slider at the bottom that allows seeking to any point in the video
 seek_slider = Scale(button_frame, from_=0, to=100, resolution=0.1, orient=HORIZONTAL, length=window_width-200, label="Video seek slider")
 seek_slider.bind("<ButtonRelease-1>", seek_event)
 seek_slider.pack(side="bottom")
-
 
 window.config(menu=menubar)
 window.mainloop()
