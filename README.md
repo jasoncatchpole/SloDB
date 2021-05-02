@@ -57,6 +57,11 @@ There are two versions of the source code, one in python and another in C++. The
 It is highly recommended to use the python version as not only does it have a GUI but there are also several improvements and bug fixes not present in the original C++. Check out [the readme in the python folder](/src/python/) for more details about the python code.
 
 ## The GUI
+
+### Running
+The GUI is only available with the python version of the SloDB code. For more information about installing the various packages required by this GUI please see [the readme in the python folder](/src/python/). Having installed all the required packages the GUI can be run by running the `slodb_gui.py` source file.
+
+### Overview
 Use of the GUI is pretty simple. The first video you load in is the "reference video". As you load subsequent videos in and seek (using either the seek bar or the next/previous frame buttons) all other videos loaded in will be synchronized so they should show (roughly) the same position/orientation as in the reference video. The below image shows this GUI with a single video loaded.
 
 ![Python GUI - single video](/readme_images/python_gui_single_vid.png)
