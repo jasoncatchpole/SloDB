@@ -45,6 +45,7 @@ The following image shows frames extracted from different videos all of the same
 
 ### Example video sequence
 Here is one of the videos from the dataset to get a feel for the motion sequence captured.
+
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=CAeCfXi1LsU" target="_blank"><img src="http://img.youtube.com/vi/CAeCfXi1LsU/0.jpg" 
 alt="Example video from SloDB" width="360" height="289" border="10" /></a>
 
