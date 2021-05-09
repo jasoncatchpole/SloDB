@@ -182,7 +182,7 @@ class PoseRefiner:
         
     def general_interpolation(self, frames, begin_frame, begin_value, begin_time, end_position,\
         last_frame, is_tilt, other_val) -> int:
-        """Performs interpolation between BLAH
+        """Performs interpolation on poses between two positions in a video
         """
         if begin_frame > len(frames):
             return 0
@@ -224,7 +224,6 @@ class PoseRefiner:
                 frame_index+=1
 
             # now that we have found the location of the frames to interpolate between do the interpolation
-            # CALL A FUNCTION HERE WHICH INTERPOLATES BETWEEN 2 GIVEN FRAMES/TIMES AND POSITIONS
             self.interframe_interpolation(frames, begin_frame, end_frame, start_time, end_time, start_val, end_val, is_tilt, other_val)
 
             # now set the start as the end of the last interpolation and do the next segment
@@ -309,7 +308,6 @@ class PoseRefiner:
         elif end_pos_tilt >= begin_val_tilt and tilt_speed < 0:
             tilt_speed = -tilt_speed
 
-        # TODO: UP TO LINE 567 of PoseRefiner.cpp
         frame_index = begin_frame
         while frame_index < end_frame:
             #cur_frame_num = frames[frame_index].frame_num

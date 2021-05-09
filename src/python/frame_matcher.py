@@ -1,5 +1,5 @@
-"""The PoseCalculator combines the pandata and the frame data into improved ground truth
-measurements"""
+"""The FrameMatcher provides the ability to match frames from a reference source to any number of
+other videos loaded in, i.e. it provides the synchronization"""
 
 import math
 
@@ -71,8 +71,8 @@ class FrameMatcher:
 
         return seek_positions, distances
 
-    # Searches through 'frames' to find the closest frame in pose to 'mainFrame'
     def locate_closest_frame(self, main_frame, frame_set_index) -> int:
+        """Searches through 'frames' to find the closest frame in pose to 'mainFrame'"""
         match_index = -1
         closest_distance = 999999999
 
@@ -113,9 +113,9 @@ class FrameMatcher:
         # match found
         return match_index, closest_distance
 
-    # Calculates the distance between 2 frames
     @staticmethod
     def distance(frame1, frame2) -> float:
+        """Calculates the distance between 2 frames"""
         dist = 0.0
 
         # calculate the euclidean distance between the two positions and orientations

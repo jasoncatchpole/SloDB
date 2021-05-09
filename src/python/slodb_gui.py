@@ -1,3 +1,5 @@
+"""Main entry point for the GUI application. Sets up the window and all the controls"""
+
 from tkinter import *
 import math
 import threading
@@ -14,21 +16,6 @@ from frame_matcher import FrameMatcher
 video_frame_scale_factor = 0.7
 window_width = 2150
 window_height = 1200
-
-# TODO:
-# - Button - add new source
-# - when button clicked a new VideoCapture is created and added to a list
-# - reference video should have a label
-# - all videos should have a label with the date/time filename
-# - when new video capture source is added add a new panel which will store the current frame
-# - Every time a new source added load in the corresponding ground truth.
-#     - pose refinement can happen on the source
-#     - might need to perform the frame matcher operation again as another source has been added
-# - perhaps a button to force all sources to jump to a certain stage
-# - a seek slider which causes the reference (first) video source to seek to that location.
-#     - other sources will seek based on the reference frame
-# - For each video should show the video name but also which frame it is currently showing. Showing 
-#   which frame number will make it easier to tell when the seeking ends up getting a frame from some random place in video
 
 number_sources = 0
 sources = []
